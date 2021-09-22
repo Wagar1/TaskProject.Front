@@ -16,74 +16,90 @@
           vertical
         ></v-divider>
         <v-spacer></v-spacer>
+
         <v-dialog
           v-model="dialog"
           max-width="500px"
         >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="primary"
-              dark
-              class="mb-2"
-              v-bind="attrs"
-              v-on="on"
-            >
-              Новая задача
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title>
-              <span class="text-h5">{{ formTitle }}</span>
-            </v-card-title>
-
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
-                  >
-                    <v-text-field
-                      v-model="editedItem.username"
-                      label="Имя пользователя"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
-                  >
-                    <v-text-field
-                      v-model="editedItem.email"
-                      label="Email"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
-                  >
-                    <v-text-field
-                      v-model="editedItem.content"
-                      label="Текст задачи"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
-                  >
-                    <v-text-field
-                      v-model="editedItem.status"
-                      label="Статус задачи"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-
-            <v-card-actions>
+        <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                color="primary"
+                dark
+                class="mb-2"
+                v-bind="attrs"
+                v-on="on"
+              >
+                Новая задача
+              </v-btn>
+        </template>
+         <validation-observer
+            ref="observer"
+            v-slot="{ invalid }"
+         >
+            <form @submit.prevent="submit"> 
+            <v-card>
+                <v-card-title>
+                <span class="text-h5">{{ formTitle }}</span>
+                </v-card-title>
+  
+                <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12"> 
+                    <validation-provider
+                      v-slot="{ errors }"
+                      name="username"
+                      rules="required"
+                    >
+                     <v-text-field
+                       v-model="editedItem.username"
+                       :error-messages="errors"
+                       label="Имя пользователя"
+                     ></v-text-field>
+                    </validation-provider>
+                   </v-col>
+                   <v-col
+                     cols="12"
+                   >
+                    <validation-provider
+                      v-slot="{ errors }"
+                      name="username"
+                      rules="required|email"
+                    >
+                     <v-text-field
+                       v-model="editedItem.email"
+                       :error-messages="errors"
+                       label="Email"
+                     ></v-text-field>
+                    </validation-provider>
+                   </v-col>
+                   <v-col
+                     cols="12"
+                   >
+                    <validation-provider
+                      v-slot="{ errors }"
+                      name="username"
+                      rules="required"
+                    >
+                     <v-text-field
+                       v-model="editedItem.content"
+                       :error-messages="errors"
+                       label="Текст задачи"
+                     ></v-text-field>
+                    </validation-provider>
+                   </v-col>
+                   <v-col
+                     cols="12"
+                   >
+                     <v-text-field
+                       v-model="editedItem.status"
+                       label="Статус задачи"
+                     ></v-text-field>
+                   </v-col>
+                 </v-row>
+                </v-container>              
+                </v-card-text>
+                <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn
                 color="blue darken-1"
@@ -95,13 +111,17 @@
               <v-btn
                 color="blue darken-1"
                 text
-                @click="save"
+                @click="save()"
+                :disabled="invalid"
               >
                 Сохранить
               </v-btn>
-            </v-card-actions>
-          </v-card>
+                </v-card-actions>
+            </v-card>
+            </form>
+         </validation-observer>
         </v-dialog>
+
         <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
             <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
@@ -143,7 +163,23 @@
 
 <script>
   import { mapActions, mapGetters } from 'vuex';
+  import { required, email } from 'vee-validate/dist/rules'
+  import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate'
+  setInteractionMode('eager');
+  extend('required', {
+    ...required,
+    message: 'Поле не может быть пустым',
+  })
+
+  extend('email', {
+    ...email,
+    message: 'Email должен быть правильным',
+  })
   export default {
+    components: {
+      ValidationProvider,
+      ValidationObserver,
+    },
     data: () => ({
       dialog: false,
       dialogDelete: false,
@@ -194,7 +230,7 @@
     },
 
     methods: {
-      ...mapActions('tasks', ['fetchTasks']),
+      ...mapActions('tasks', ['fetchTasks', 'createTask']),
       initialize: async function () {
         await this.fetchTasks();
         this.getTasks.map(x=>{
@@ -245,11 +281,12 @@
         })
       },
 
-      save () {
+      save: async function() {
         if (this.editedIndex > -1) {
-          Object.assign(this.tasks[this.editedIndex], this.editedItem)
+          Object.assign(this.tasks[this.editedIndex], this.editedItem);
         } else {
-          this.tasks.push(this.editedItem)
+          this.tasks.push(this.editedItem);
+          await this.createTask(this.editedItem);
         }
         this.close()
       },

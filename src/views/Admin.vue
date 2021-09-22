@@ -11,22 +11,22 @@
                            >
                            <form @submit.prevent="submit">
                              <validation-provider
-                        v-slot="{ errors }"
-                        name="username"
-                        rules="required|max:10"
-                      >
-                        <v-text-field
-                          v-model="username"
-                          :error-messages="errors"
-                          label="Имя пользователя"
-                          required
-                        ></v-text-field>
+                              v-slot="{ errors }"
+                              name="username"
+                              rules="required|max:10"
+                            >
+                            <v-text-field
+                              v-model="username"
+                              :error-messages="errors"
+                              label="Имя пользователя"
+                              required
+                            ></v-text-field>
                              </validation-provider>
                              <validation-provider
-                        v-slot="{ errors }"
-                        name="email"
-                        rules="required|email"
-                      >
+                                v-slot="{ errors }"
+                                name="email"
+                                rules="required|email"
+                              >
                         <v-text-field
                           v-model="email"
                           :error-messages="errors"
@@ -52,7 +52,7 @@
    </v-card>
  </template>
 <script>
-  import { required, digits, email, max, regex } from 'vee-validate/dist/rules'
+  import { required, email } from 'vee-validate/dist/rules'
   import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate'
 
   setInteractionMode('eager')
