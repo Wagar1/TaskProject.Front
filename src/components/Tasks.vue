@@ -142,6 +142,7 @@
 </template>
 
 <script>
+  import { mapActions, mapGetters } from 'vuex';
   export default {
     data: () => ({
       dialog: false,
@@ -173,6 +174,7 @@
     }),
 
     computed: {
+      ...mapGetters('tasks', ['getTasks']),
       formTitle () {
         return this.editedIndex === -1 ? 'Новая задача' : 'Редактировать задачу'
       },
@@ -192,15 +194,22 @@
     },
 
     methods: {
-      initialize () {
-        this.tasks = [
-          {
-            username: 'Вугар Эйвазов',
-            email: 'vuqar.eyvazov.1997@gmail.com',
-            content: 'Go',
+      ...mapActions('tasks', ['fetchTasks']),
+      initialize: async function () {
+        await this.fetchTasks();
+        this.getTasks.map(x=>{
+          let task = {
+            username: '',
+            email: '',
+            content: '',
             status: 0
           }
-        ]
+          task.username = x.UserName;
+          task.email = x.Email;
+          task.content = x.Text;
+          task.status = x.Status;
+          this.tasks.push(task);
+        });
       },
 
       editItem (item) {
