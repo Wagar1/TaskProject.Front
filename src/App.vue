@@ -7,7 +7,8 @@
     >
       <v-container class="py-0 fill-height">
         <v-spacer></v-spacer>
-        <v-btn text>Админ</v-btn>
+        <v-btn to="/" text>Главное</v-btn>
+        <v-btn to="/admin" text>Админ</v-btn>
       </v-container>
     </v-app-bar>
 
