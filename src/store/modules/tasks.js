@@ -27,7 +27,6 @@ export default {
             formData.append('UserName', payload.username);
             formData.append('Email', payload.email);
             formData.append('Text', payload.content);
-            console.log(formData);
             const requestOptions = {
                 method: 'post',
                 url: url,

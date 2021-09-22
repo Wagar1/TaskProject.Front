@@ -13,7 +13,7 @@
                              <validation-provider
                               v-slot="{ errors }"
                               name="username"
-                              rules="required|max:10"
+                              rules="required"
                             >
                             <v-text-field
                               v-model="username"
@@ -24,23 +24,23 @@
                              </validation-provider>
                              <validation-provider
                                 v-slot="{ errors }"
-                                name="email"
-                                rules="required|email"
+                                name="password"
+                                rules="required"
                               >
                         <v-text-field
-                          v-model="email"
+                          v-model="password"
                           :error-messages="errors"
-                          label="E-mail"
+                          label="Пароль"
                           required
                         ></v-text-field>
                              </validation-provider>
                              <v-btn
-                        type="submit"
-                        text
-                        :disabled="invalid"
+                              type="submit"
+                              text
+                              :disabled="invalid"
                              >Логин</v-btn>
                              <v-btn text @click="clear">
-                       Очистить
+                              Очистить
                              </v-btn>
                            </form>
                        </validation-observer>
@@ -52,19 +52,29 @@
    </v-card>
  </template>
 <script>
-  import { required, email } from 'vee-validate/dist/rules'
+  import { required } from 'vee-validate/dist/rules'
   import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate'
-
+  import { mapActions } from 'vuex'
+  const dict = {
+    custom: {
+      email: {
+        required: 'Your email is empty'
+      },
+      name: {
+        required: () => 'Your name is empty'
+      }
+    }
+  };
+  
+  Validator.localize('en', dict);
+  // or use the instance method
+  this.$validator.localize('en', dict);
+  
   setInteractionMode('eager')
 
   extend('required', {
     ...required,
-    message: 'Поле не может быть пустым',
-  })
-
-  extend('email', {
-    ...email,
-    message: 'Email должен быть правильным',
+    message: 'Поле является обязательным для заполнения',
   })
 
   export default {
@@ -74,16 +84,23 @@
     },
     data: () => ({
       username: '',
-      email: ''
+      password: ''
     }),
 
     methods: {
-      submit () {
+      ...mapActions('admin', ['login']),
+      submit: async function() {
         this.$refs.observer.validate();
+        try{
+          await this.login({username: this.username, password: this.password});
+        }catch(error){
+          console.log(error);
+        }
+        
       },
       clear () {
         this.username = '';
-        this.email = '';
+        this.password = '';
         this.$refs.observer.reset();
       },
     },
